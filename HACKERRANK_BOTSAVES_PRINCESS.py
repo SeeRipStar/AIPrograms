@@ -22,12 +22,9 @@ def displayPathtoPrincess(n, grid):
         for _ in range(dcols):
             print("RIGHT")
 
-# Read input
 m = int(input())
 grid = []
 
 for _ in range(m):
     grid.append(input().strip())
-
-# Call the function to display the path
 displayPathtoPrincess(m, grid)
