@@ -1,65 +1,109 @@
-def solve_n_puzzle(initial_state, k):
-    goal_state = [[i * k + j + 1 for j in range(k)] for i in range(k)]
-    goal_state[k - 1][k - 1] = 0
-    
-    def heuristic(state):
-        distance = 0
-        for i in range(k):
-            for j in range(k):
-                if state[i][j] != 0:
-                    num = state[i][j] - 1
-                    row, col = num // k, num % k
-                    distance += abs(i - row) + abs(j - col)
-        return distance
-    
-    def possible_moves(x, y):
-        moves = []
-        if x > 0:
-            moves.append(('UP', x - 1, y))
-        if x < k - 1:
-            moves.append(('DOWN', x + 1, y))
-        if y > 0:
-            moves.append(('LEFT', x, y - 1))
-        if y < k - 1:
-            moves.append(('RIGHT', x, y + 1))
-        return moves
-    
-    def apply_move(state, move):
-        direction, new_x, new_y = move
-        new_state = [row[:] for row in state]
-        new_state[x][y], new_state[new_x][new_y] = new_state[new_x][new_y], new_state[x][y]
-        return new_state
-    
-    open_set = [(heuristic(initial_state), 0, initial_state)]
-    closed_set = set([tuple(map(tuple, initial_state))])
-    
-    while open_set:
-        _, moves, current_state = open_set.pop(0)
-        
-        if current_state == goal_state:
-            return moves
-        
-        x, y = next((i, j) for i in range(k) for j in range(k) if current_state[i][j] == 0)
-        
-        for move in possible_moves(x, y):
-            new_state = apply_move(current_state, move)
-            if tuple(map(tuple, new_state)) not in closed_set:
-                open_set.append((heuristic(new_state) + moves + 1, moves + 1, new_state))
-                closed_set.add(tuple(map(tuple, new_state)))
-    
-    return -1
+import copy
+from heapq import heappush, heappop
 
-# Sample input
-k = 3
-initial_state = [
-    [0, 3, 8],
-    [4, 1, 7],
-    [2, 6, 5]
-]
+n = 3
 
-num_moves = solve_n_puzzle(initial_state, k)
+row = [1, 0, -1, 0]
+col = [0, -1, 0, 1]
 
-if num_moves == -1:
-    print("This puzzle is not solvable.")
-else:
-    print(num_moves)
+class priorityQueue:
+    def __init__(self):
+        self.heap = []
+
+    def push(self, k):
+        heappush(self.heap, k)
+
+    def pop(self):
+        return heappop(self.heap)
+
+    def empty(self):
+        if not self.heap:
+            return True
+        else:
+            return False
+
+class node:
+    def __init__(self, parent, mat, empty_tile_pos, cost, level):
+        self.parent = parent
+        self.mat = mat
+        self.empty_tile_pos = empty_tile_pos
+        self.cost = cost
+        self.level = level
+
+    def __lt__(self, nxt):
+        return self.cost < nxt.cost
+
+def calculateCost(mat, final) -> int:
+    count = 0
+    for i in range(n):
+        for j in range(n):
+            if mat[i][j] and mat[i][j] != final[i][j]:
+                count += 1
+    return count
+
+def newNode(mat, empty_tile_pos, new_empty_tile_pos, level, parent, final) -> node:
+    new_mat = copy.deepcopy(mat)
+    x1 = empty_tile_pos[0]
+    y1 = empty_tile_pos[1]
+    x2 = new_empty_tile_pos[0]
+    y2 = new_empty_tile_pos[1]
+    new_mat[x1][y1], new_mat[x2][y2] = new_mat[x2][y2], new_mat[x1][y1]
+    cost = calculateCost(new_mat, final)
+    new_node = node(parent, new_mat, new_empty_tile_pos, cost, level)
+    return new_node
+
+def printMatrix(mat):
+    for i in range(n):
+        for j in range(n):
+            print("%d " % (mat[i][j]), end=" ")
+        print()
+
+def isSafe(x, y):
+    return x >= 0 and x < n and y >= 0 and y < n
+
+def printPath(root):
+    if root == None:
+        return
+    printPath(root.parent)
+    printMatrix(root.mat)
+    print()
+
+def solve(initial, empty_tile_pos, final):
+    pq = priorityQueue()
+    cost = calculateCost(initial, final)
+    root = node(None, initial, empty_tile_pos, cost, 0)
+    pq.push(root)
+
+    while not pq.empty():
+        minimum = pq.pop()
+        if minimum.cost == 0:
+            printPath(minimum)
+            return
+
+        for i in range(4):
+            new_tile_pos = [
+                minimum.empty_tile_pos[0] + row[i],
+                minimum.empty_tile_pos[1] + col[i], ]
+               
+            if isSafe(new_tile_pos[0], new_tile_pos[1]):
+                child = newNode(
+                    minimum.mat,
+                    minimum.empty_tile_pos,
+                    new_tile_pos,
+                    minimum.level + 1,
+                    minimum,
+                    final,
+                )
+                pq.push(child)
+
+initial = [ [ 1, 2, 3 ],
+            [ 5, 6, 0 ],
+            [ 7, 8, 4 ] ]
+
+final = [ [ 1, 2, 3 ],
+        [ 5, 8, 6 ],
+        [ 0, 7, 4 ] ]
+
+empty_tile_pos = [ 1, 2 ]
+
+solve(initial, empty_tile_pos, final)
