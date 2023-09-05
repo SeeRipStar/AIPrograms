@@ -1,6 +1,4 @@
 from fractions import Fraction
-
-# Define the production and defect rates for each plant
 production_A = 500
 defect_rate_A = 0.005
 production_B = 1000
