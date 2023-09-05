@@ -11,3 +11,5 @@ Bot Saves Princess
 Day 2: Basic Probability Problem
 ![Screenshot (99)](https://github.com/SeeRipStar/AIPrograms/assets/110534625/74e0fba6-e326-4df4-bf93-50d826201702)
 
+N Puzzle
+![Screenshot (102)](https://github.com/SeeRipStar/AIPrograms/assets/110534625/3cca3596-459f-4115-b62e-0485ae01e02c)
